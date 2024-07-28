@@ -1,0 +1,6 @@
+/target
+/logs
+cert_der.bin
+certificate_hash.txt
+Beacon.conf.toml
+log4rs.yml
