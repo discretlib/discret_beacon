@@ -1,9 +1,11 @@
-use discret::{base64_encode, generate_x509_certificate, hash, Beacon, LogService};
+use discret::{
+    base64_encode, generate_x509_certificate, hash, random_domain_name, Beacon, LogService,
+};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::fs;
 ///
-/// Provide a basic implementation of a Beacon server that allow Discret discover peers across internet
+/// Provides a basic implementation of a server that allows Discret peers to find each others on Internet
 ///
 ///
 use std::{error::Error, ops::Deref, path::Path};
@@ -103,7 +105,7 @@ async fn start_beacon(log_service: LogService) -> Result<String, Box<dyn Error>>
         let cert_hash = base64_encode(&cert_hash);
         (cert, cert_hash)
     } else {
-        let certificate = generate_x509_certificate("beacon");
+        let certificate = generate_x509_certificate(&random_domain_name());
 
         let der: Vec<u8> = certificate.cert.der().deref().to_vec();
         let pks_der: Vec<u8> = certificate.key_pair.serialize_der();
