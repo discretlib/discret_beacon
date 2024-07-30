@@ -29,7 +29,7 @@ async fn main() {
                 }
             }
         }
-        Err(_) => todo!(),
+        Err(e) => error!("{e}"),
     }
 }
 
@@ -119,12 +119,12 @@ async fn start_beacon(log_service: LogService) -> Result<String, Box<dyn Error>>
 
     let conf_path = Path::new("Beacon.conf.toml");
     if !conf_path.exists() {
-        let default_conf = "# The IPV6 listening port
+        let default_conf = "# The IPV4 listening port
 # Default value: 4264
 ipv4_port = 4264
 
 # The IPV6 listening port
-# Default value: 4266
+# Default value: 4264
 ipv6_port = 4266
 
 # The number of read buffers
