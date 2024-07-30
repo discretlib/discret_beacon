@@ -1,6 +1,4 @@
-use discret::{
-    base64_encode, generate_x509_certificate, hash, random_domain_name, Beacon, LogService,
-};
+use discret::{base64_encode, generate_x509_certificate, hash, Beacon, LogService};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -19,6 +17,7 @@ async fn main() {
     match start_beacon(log_service).await {
         Ok(hash) => {
             info!("Beacon Sarted with certificate hash: '{hash}'");
+
             while let Ok(log) = logs.recv().await {
                 match log {
                     discret::Log::Info(_, msg) => {
@@ -88,7 +87,6 @@ appenders:
 root:
   level: info
   appenders:
-    - stdout
     - file";
 
         fs::write(log_path, default_config).unwrap();
@@ -105,7 +103,7 @@ async fn start_beacon(log_service: LogService) -> Result<String, Box<dyn Error>>
         let cert_hash = base64_encode(&cert_hash);
         (cert, cert_hash)
     } else {
-        let certificate = generate_x509_certificate(&random_domain_name());
+        let certificate = generate_x509_certificate("discret_beacon");
 
         let der: Vec<u8> = certificate.cert.der().deref().to_vec();
         let pks_der: Vec<u8> = certificate.key_pair.serialize_der();
