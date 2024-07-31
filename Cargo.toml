@@ -4,7 +4,7 @@ version = "0.6.0"
 edition = "2021"
 
 [dependencies]
-discret = { path = "/home/driou/dev/project/discret_workspace/discret" }
+discret = "0.6.0"
 toml = "0.8.15"
 serde = { version = "1.0.152", features = ["derive"] }
 bincode = "1.3.3"
