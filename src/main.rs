@@ -7,7 +7,7 @@ use std::fs;
 ///
 ///
 use std::{error::Error, ops::Deref, path::Path};
-pub const ALPN_QUIC_HTTP: &[&[u8]] = &[b"h3"];
+
 #[tokio::main]
 async fn main() {
     init_log();
@@ -42,21 +42,11 @@ struct Certificate {
 #[derive(Deserialize)]
 struct Configuration {
     //the ipv4 listenning port
-    ipv4_port: u16,
-
-    //the ipv6 listenning port
-    ipv6_port: u16,
-
-    //the number of read buffers
-    num_buffers: usize,
+    port: u16,
 }
 impl Default for Configuration {
     fn default() -> Self {
-        Self {
-            ipv4_port: 4264,
-            ipv6_port: 4266,
-            num_buffers: 10,
-        }
+        Self { port: 4264 }
     }
 }
 
@@ -121,15 +111,8 @@ async fn start_beacon(log_service: LogService) -> Result<String, Box<dyn Error>>
     if !conf_path.exists() {
         let default_conf = "# The IPV4 listening port
 # Default value: 4264
-ipv4_port = 4264
+port = 4264
 
-# The IPV6 listening port
-# Default value: 4264
-ipv6_port = 4266
-
-# The number of read buffers
-# Default value: 32
-num_buffers = 32
 ";
         fs::write(conf_path, default_conf)?;
     }
@@ -137,12 +120,11 @@ num_buffers = 32
     let conf: Configuration = toml::from_str(&conf_data)?;
 
     Beacon::start(
-        conf.ipv4_port,
-        conf.ipv6_port,
+        conf.port,
         cert.der.clone(),
         cert.pks_der.clone(),
         log_service,
-        conf.num_buffers,
+        false,
     )?;
     Ok(cert_hash)
 }
