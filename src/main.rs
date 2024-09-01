@@ -1,4 +1,4 @@
-use discret::{base64_encode, generate_x509_certificate, hash, Beacon, LogService};
+use discret::{base64_encode, generate_x509_certificate, hash, Beacon};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -7,27 +7,17 @@ use std::fs;
 ///
 ///
 use std::{error::Error, ops::Deref, path::Path};
+use tokio::sync::Notify;
 
 #[tokio::main]
 async fn main() {
     init_log();
-    let log_service: LogService = LogService::start();
-    let mut logs = log_service.subcribe().await;
 
-    match start_beacon(log_service).await {
+    match start_beacon().await {
         Ok(hash) => {
             info!("Beacon Sarted with certificate hash: '{hash}'");
-
-            while let Ok(log) = logs.recv().await {
-                match log {
-                    discret::Log::Info(_, msg) => {
-                        info!("{msg}");
-                    }
-                    discret::Log::Error(_, src, msg) => {
-                        error!("source: {src} message: {msg}")
-                    }
-                }
-            }
+            let notify = Notify::new();
+            notify.notified().await;
         }
         Err(e) => error!("{e}"),
     }
@@ -84,7 +74,7 @@ root:
     log4rs::init_file(log_config, Default::default()).unwrap();
 }
 
-async fn start_beacon(log_service: LogService) -> Result<String, Box<dyn Error>> {
+async fn start_beacon() -> Result<String, Box<dyn Error>> {
     let cert_path = Path::new("cert_der.bin");
     let (cert, cert_hash) = if cert_path.exists() {
         let bin_cert = fs::read(cert_path)?;
@@ -119,12 +109,6 @@ port = 4264
     let conf_data = fs::read_to_string("Beacon.conf.toml")?;
     let conf: Configuration = toml::from_str(&conf_data)?;
 
-    Beacon::start(
-        conf.port,
-        cert.der.clone(),
-        cert.pks_der.clone(),
-        log_service,
-        false,
-    )?;
+    Beacon::start(conf.port, cert.der.clone(), cert.pks_der.clone(), false)?;
     Ok(cert_hash)
 }
